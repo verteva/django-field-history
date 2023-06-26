@@ -185,7 +185,7 @@ class FieldHistoryTracker(object):
                         field_name=field,
                         table_name=instance._meta.model_name,
                         serialized_data=data,
-                        user=str(user.pk),
+                        user=user and str(user.pk),
                         new_value=self.value_to_string(new_value_raw, data),
                         old_value=self.value_to_string(old_value_raw, data),
                     )
