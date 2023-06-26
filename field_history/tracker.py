@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from copy import deepcopy
+import inspect
 import json
 import threading
 
@@ -102,19 +103,17 @@ class FieldHistoryTracker(object):
         if not fields:
             raise ValueError("Can't track zero fields")
 
-        if fields == "__all__":
-            self.fields = set([fields])
-        else:
-            self.fields = set(fields)
-
-    def contribute_to_class(self, cls, name):
-        if "__all__" in self.fields:
+        if inspect.isclass(fields) and issubclass(fields, models.base.Model):
+            cls = fields
             field_list = list()
             for field in cls._meta.local_fields:
                 # Q) Do we need to enforce .one_to_many .many_to_many .many_to_one exclusions
                 field_list.append(field.name)
             self.fields = set(field_list)
+        else:
+            self.fields = set(fields)
 
+    def contribute_to_class(self, cls, name):
         setattr(cls, '_get_field_history', _get_field_history)
         for field in self.fields:
             setattr(cls, 'get_%s_history' % field,
@@ -184,6 +183,7 @@ class FieldHistoryTracker(object):
                     history = FieldHistory(
                         object=instance,
                         field_name=field,
+                        table_name=instance._meta.model_name,
                         serialized_data=data,
                         user=user,
                         new_value=self.value_to_string(new_value_raw, data),

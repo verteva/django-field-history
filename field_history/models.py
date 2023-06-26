@@ -34,6 +34,7 @@ def instantiate_object_id_field(object_id_class_or_tuple=models.TextField):
 class FieldHistory(models.Model):
     object_id = instantiate_object_id_field(getattr(settings, OBJECT_ID_TYPE_SETTING, models.TextField))
     content_type = models.ForeignKey('contenttypes.ContentType', db_index=True, on_delete=models.CASCADE)
+    table_name = models.CharField(max_length=500, db_index=True)  # Same as field
     object = GenericForeignKey()  # Same as parent
     field_name = models.CharField(max_length=500, db_index=True)  # Same as field
     old_value = models.TextField(null=True, blank=True)

@@ -261,6 +261,7 @@ class FieldHistoryTests(TestCase):
             row = FieldHistory.objects.get_for_model_and_field(human, field_name).order_by("-date_created").first()
             self.assertEqual(row.old_value, old_value)
             self.assertEqual(row.new_value, new_value)
+            self.assertEqual(row.table_name, "human")
 
 
         self.assertEqual(FieldHistory.objects.count(), 8)
