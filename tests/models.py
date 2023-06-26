@@ -30,7 +30,8 @@ class Human(models.Model):
     body_temp = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
     birth_date = models.DateField(blank=True, null=True)
 
-    field_history = FieldHistoryTracker("__all__")
+    field_history = FieldHistoryTracker(['age', 'is_female',
+                                         'body_temp', 'birth_date'])
 
 
 class PizzaOrder(models.Model):
