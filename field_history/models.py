@@ -41,7 +41,7 @@ class FieldHistory(models.Model):
     new_value = models.TextField(null=True, blank=True)
     serialized_data = models.TextField()
     date_created = models.DateTimeField(auto_now_add=True, db_index=True)  # Same as created date
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, on_delete=models.CASCADE, db_constraint=False)  # Same as created by ID
+    user = models.CharField(max_length=50, null=True, blank=True)
 
     objects = FieldHistoryManager()
 

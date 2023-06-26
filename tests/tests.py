@@ -99,7 +99,7 @@ class FieldHistoryTests(TestCase):
         self.assertEqual(history.field_name, 'name')
         self.assertEqual(history.field_value, 'Initial Name')
         self.assertIsNotNone(history.date_created)
-        self.assertEqual(history.user, user)
+        self.assertEqual(history.user, str(user.pk))
 
     def test_field_history_user_is_from_request_user(self):
         user = get_user_model().objects.create(
@@ -119,7 +119,7 @@ class FieldHistoryTests(TestCase):
         self.assertEqual(history.field_name, 'status')
         self.assertEqual(history.field_value, 'ORDERED')
         self.assertIsNotNone(history.date_created)
-        self.assertEqual(history.user, user)
+        self.assertEqual(history.user, str(user.pk))
 
         # Don't pollute future tests
         FieldHistoryTracker.thread.request = None
