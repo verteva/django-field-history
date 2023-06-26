@@ -101,9 +101,20 @@ class FieldHistoryTracker(object):
     def __init__(self, fields):
         if not fields:
             raise ValueError("Can't track zero fields")
-        self.fields = set(fields)
+
+        if fields == "__all__":
+            self.fields = set([fields])
+        else:
+            self.fields = set(fields)
 
     def contribute_to_class(self, cls, name):
+        if "__all__" in self.fields:
+            field_list = list()
+            for field in cls._meta.local_fields:
+                # Q) Do we need to enforce .one_to_many .many_to_many .many_to_one exclusions
+                field_list.append(field.name)
+            self.fields = set(field_list)
+
         setattr(cls, '_get_field_history', _get_field_history)
         for field in self.fields:
             setattr(cls, 'get_%s_history' % field,
