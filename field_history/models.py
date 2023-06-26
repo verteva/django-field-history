@@ -34,11 +34,13 @@ def instantiate_object_id_field(object_id_class_or_tuple=models.TextField):
 class FieldHistory(models.Model):
     object_id = instantiate_object_id_field(getattr(settings, OBJECT_ID_TYPE_SETTING, models.TextField))
     content_type = models.ForeignKey('contenttypes.ContentType', db_index=True, on_delete=models.CASCADE)
-    object = GenericForeignKey()
-    field_name = models.CharField(max_length=500, db_index=True)
+    object = GenericForeignKey()  # Same as parent
+    field_name = models.CharField(max_length=500, db_index=True)  # Same as field
+    old_value = models.TextField(null=True, blank=True)
+    new_value = models.TextField(null=True, blank=True)
     serialized_data = models.TextField()
-    date_created = models.DateTimeField(auto_now_add=True, db_index=True)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, on_delete=models.CASCADE)
+    date_created = models.DateTimeField(auto_now_add=True, db_index=True)  # Same as created date
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, on_delete=models.CASCADE, db_constraint=False)  # Same as created by ID
 
     objects = FieldHistoryManager()
 

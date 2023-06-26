@@ -59,6 +59,7 @@ class FieldHistoryTests(TestCase):
         assert updated_history.field_name == 'status'
         assert updated_history.field_value == 'COOKING'
         assert updated_history.date_created is not None
+        pass #breakpoint()
 
     def test_str(self):
         person = Person.objects.create(name='Initial Name')
@@ -224,6 +225,13 @@ class FieldHistoryTests(TestCase):
         self.assertIsNotNone(history.date_created)
 
     def test_field_history_tracks_multiple_fields_changed_at_same_time(self):
+        assertion_values = (
+                ("birth_date", "1991-11-06", "1992-11-06"),
+                ("is_female", "true", "false"),
+                ("body_temp", "98.6", "100.0"),
+                ("age", "18", "21")
+        )
+
         human = Human.objects.create(
             birth_date=datetime.date(1991, 11, 6),
             is_female=True,
@@ -237,17 +245,39 @@ class FieldHistoryTests(TestCase):
         self.assertEqual(FieldHistory.objects.get_for_model_and_field(human, 'body_temp').count(), 1)
         self.assertEqual(FieldHistory.objects.get_for_model_and_field(human, 'age').count(), 1)
 
+        old_value = None
+        for (field_name, new_value, _) in assertion_values:
+            row = FieldHistory.objects.get_for_model_and_field(human, field_name).order_by("-date_created").first()
+            self.assertEqual(row.old_value, old_value)
+            self.assertEqual(row.new_value, new_value)
+
         human.birth_date = datetime.date(1992, 11, 6)
         human.is_female = False
         human.body_temp = 100.0
         human.age = 21
         human.save()
 
+        for (field_name, old_value, new_value) in assertion_values:
+            row = FieldHistory.objects.get_for_model_and_field(human, field_name).order_by("-date_created").first()
+            self.assertEqual(row.old_value, old_value)
+            self.assertEqual(row.new_value, new_value)
+
+
         self.assertEqual(FieldHistory.objects.count(), 8)
         self.assertEqual(FieldHistory.objects.get_for_model_and_field(human, 'birth_date').count(), 2)
         self.assertEqual(FieldHistory.objects.get_for_model_and_field(human, 'is_female').count(), 2)
         self.assertEqual(FieldHistory.objects.get_for_model_and_field(human, 'body_temp').count(), 2)
         self.assertEqual(FieldHistory.objects.get_for_model_and_field(human, 'age').count(), 2)
+
+        human.delete()
+
+        try:
+            human.refresh_from_db()
+        except Exception as e:
+            self.assertIsInstance(e, Human.DoesNotExist)
+
+        self.assertEqual(FieldHistory.objects.count(), 8)  # And the history does not change
+
 
     def test_field_history_works_with_foreign_key_field(self):
         pet = Pet.objects.create(name='Garfield')

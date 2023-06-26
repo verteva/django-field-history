@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from copy import deepcopy
+import json
 import threading
 
 from django.core import serializers
@@ -128,6 +129,25 @@ class FieldHistoryTracker(object):
         setattr(instance, self.attname, tracker)
         tracker.set_saved_fields()
 
+    @classmethod
+    def value_to_string(cls, value, fallback_data):
+        import datetime
+        if value is None:
+            return value
+
+        if isinstance(value, datetime.datetime):
+            return value.isoformat()
+        elif isinstance(value, datetime.date):
+            return value.isoformat()
+        elif isinstance(value, bool):
+            return json.dumps(value)
+        else:
+            try:
+                return str(value)
+            except:
+                return fallback_data
+
+
     def patch_save(self, instance):
         original_save = instance.save
 
@@ -143,12 +163,20 @@ class FieldHistoryTracker(object):
                     data = serializers.serialize(get_serializer_name(),
                                                  [instance],
                                                  fields=[field])
+
+                    old_value_raw = None
+                    new_value_raw = tracker.get_field_value(field)
+                    if not is_new_object:
+                        old_value_raw = tracker.previous(field)
+                        tracker.previous(field)
                     user = self.get_field_history_user(instance)
                     history = FieldHistory(
                         object=instance,
                         field_name=field,
                         serialized_data=data,
                         user=user,
+                        new_value=self.value_to_string(new_value_raw, data),
+                        old_value=self.value_to_string(old_value_raw, data),
                     )
                     field_histories.append(history)
 

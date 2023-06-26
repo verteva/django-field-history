@@ -7,6 +7,7 @@ try:
     settings.configure(
         DEBUG=True,
         USE_TZ=True,
+        SECRET_KEY="monkeyman",
         DATABASES={
             "default": {
                 "ENGINE": "django.db.backends.sqlite3",
