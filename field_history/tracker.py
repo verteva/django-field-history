@@ -66,7 +66,12 @@ class FieldInstanceTracker(object):
         self.fields = fields
 
     def get_field_value(self, field):
-        return getattr(self.instance, field)
+        """
+        getattr sometimes causes the object to reinitialize, that fires a signal which initializes a tracker,
+        causing a stack overflow hence replaced it with a safer __dict__.get instead
+        so that the ORM does not try any smarts
+        """
+        return self.instance.__dict__.get(field)  # return getattr(self.instance, field)
 
     def set_saved_fields(self, fields=None):
         if not self.instance.pk:
